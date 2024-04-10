@@ -234,7 +234,7 @@ if __name__ == '__main__':
     parser.add_argument('--activation', type=str, default='elu', help='choices:[relu,gelu,elu,silu]')
     parser.add_argument('--num_filter', type=list, default=[64,128,256,512,1024], help='Enter 5 number of filters list')
     parser.add_argument('--filter_size', type=list, default=[5,5,5,5,5], help='Enter 5 filter size values')
-    parser.add_argument('--dropout', type=int, default=0.4, help='choices:(0,1)')
+    parser.add_argument('--dropout', type=int, default=0.3, help='choices:(0,1)')
     parser.add_argument('--batch_normal', type=bool, default=False, help='choices:["True","False"]')
     parser.add_argument('--data_augmentation', type=bool, default=False, help='choices:["True","False"]')
     parser.add_argument('--batch_size', type=int, default=32, help='choices:[32,64]')
