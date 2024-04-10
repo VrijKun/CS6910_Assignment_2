@@ -11,7 +11,7 @@ python 3.12
 pytorch and pytoch-lightning 2.2.1
 numpy 125
 ```
-- I have conducted most some of my experments on Google collab. And some on PC.
+- I have conducted most some of my experments on Google collab. And most of them on PC. If Google collab file shows error please use python file.
 - To run the code clone the repository, install wandb and wget which is used to import the dataset.
 - You need to use inbuilt GPU to run the experiments on Collab. It will allow faster computation and training of your model.
 ```
