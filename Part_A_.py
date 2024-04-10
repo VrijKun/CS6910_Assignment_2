@@ -49,6 +49,15 @@ class ECNN(pl.LightningModule):
 
         # Define pooling layer
         self.pool = nn.MaxPool2d(2, 2)
+        
+        if activation == 'relu':
+            self.activation = nn.ReLU()
+        elif activation == 'gelu':
+            self.activation = nn.GELU()
+        elif activation == 'elu':
+            self.activation = nn.ELU()
+        elif activation == 'silu':
+            self.activation = nn.SiLU()
 
         # Define dropout
         self.dropout1 = nn.Dropout(dropout)
@@ -67,41 +76,41 @@ class ECNN(pl.LightningModule):
 
     def forward(self, x):
         if self.batch_normalization:
-          x = F.relu(self.bn1(self.conv1(x)))
+          x = self.activation(self.bn1(self.conv1(x)))
         else:
-          x = F.relu(self.conv1(x))
+          x = self.activation(self.conv1(x))
         x=self.dropout1(x)
         x = self.pool(x)
         #print('0: ',x.shape)
 
         if self.batch_normalization:
-          x = F.relu(self.bn2(self.conv2(x)))
+          x = self.activation(self.bn2(self.conv2(x)))
         else:
-          x = F.relu(self.conv2(x))
+          x = self.activation(self.conv2(x))
         x=self.dropout2(x)
         x = self.pool(x)
         #print('1: ',x.shape)
 
         if self.batch_normalization:
-          x = F.relu(self.bn3(self.conv3(x)))
+          x = self.activation(self.bn3(self.conv3(x)))
         else:
-          x = F.relu(self.conv3(x))
+          x = self.activation(self.conv3(x))
         x=self.dropout3(x)
         x = self.pool(x)
         #print('2: ',x.shape)
 
         if self.batch_normalization:
-          x = F.relu(self.bn4(self.conv4(x)))
+          x = self.activation(self.bn4(self.conv4(x)))
         else:
-          x = F.relu(self.conv4(x))
+          x = self.activation(self.conv4(x))
         x=self.dropout4(x)
         x = self.pool(x)
         #print('3: ',x.shape)
 
         if self.batch_normalization:
-          x = F.relu(self.bn5(self.conv5(x)))
+          x = self.activation(self.bn5(self.conv5(x)))
         else:
-          x = F.relu(self.conv5(x))
+          x = self.activation(self.conv5(x))
         x=self.dropout5(x)
         x = self.pool(x)
 
@@ -128,53 +137,7 @@ class ECNN(pl.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)
-    '''
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = F.nll_loss(y_hat, y)
-        self.log('train_loss', loss)
-        return loss
 
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = F.nll_loss(y_hat, y)
-        self.log('val_loss', loss)
-
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        loss = F.nll_loss(y_hat, y)
-        self.log('test_loss', loss)
-    
-    #break here
-
-    
-    
-    def training_step(self, train_loader):
-        self.train()
-        for x, y in train_loader:
-            y_hat = self(x)
-            loss = F.nll_loss(y_hat, y)
-            self.log('train_loss', loss)
-            return loss
-
-    def validation_step(self, val_loader):
-        self.eval()
-        for x, y in val_loader:
-            y_hat = self(x)
-            loss = F.nll_loss(y_hat, y)
-            self.log('val_loss', loss)
-
-    def test_step(self, test_loader):
-        self.eval()
-        for x, y in test_loader:
-            y_hat = self(x)
-            loss = F.nll_loss(y_hat, y)
-            self.log('test_loss', loss)
-            #2nd break here
-            '''
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
@@ -202,35 +165,9 @@ class ECNN(pl.LightningModule):
         self.log('val_accuracy', acc, on_step=True, on_epoch=True) 
         #print(f"Validation Loss: {loss.item()}, val_Accuracy: {acc_percent}")
         return loss
-    '''
+
     
-    def validation_accuracy(model, val_loader):
-        model.eval()
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for batch in val_loader:
-                x, y = batch
-                y_hat = model(x)
-                correct += (torch.argmax(y_hat, dim=1) == y).sum().item()
-                total += y.size(0)
-        acc = correct / total
-        return acc
 
-    def test_accuracy(model, test_loader):
-        model.eval()
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for batch in test_loader:
-                x, y = batch
-                y_hat = model(x)
-                correct += (torch.argmax(y_hat, dim=1) == y).sum().item()
-                total += y.size(0)
-        acc = correct / total
-        return acc
-
-    '''
 
 # Define transforms
 transform = transforms.Compose([
@@ -262,36 +199,6 @@ def create_data_loaders(train_data, val_data, batch_size, shuffle_train=True, pi
     val_loader = DataLoader(val_data, batch_size=batch_size, pin_memory=pin_memory, num_workers=num_workers,  persistent_workers=persistent_workers)
     return train_loader, val_loader
 
-'''
-
-train_loader, val_loader = create_data_loaders(train_data, val_data, batch_size = 32, shuffle_train=True)
-
-batch_size= 32
-train_loader = DataLoader(train_data, batch_size = batch_size, shuffle=True)
-val_loader = DataLoader(val_data, batch_size= batch_size)
-
-
-
-# Initialize model
-model = ECNN(input_shape=(3, 224, 224), num_classes=10, num_filters=[32,32,32,32,32], filter_size=[3,3,3,3,3], dense_neurons=128,batch_normalization= True,dropout=0.2 ,activation='relu')
-#x = torch.randn(1,3,224,224)
-#x = torch.randn(32,3,224,224)
-#a =model(x)
-#print(a.shape)
-
-# Initialize Lightning trainer with GPU support
-trainer = pl.Trainer(max_epochs=1, accelerator="auto") # not GPU but accelerator
-
-# Train the model
-trainer.fit(model, train_loader, val_loader)
-
-print(model.validation_accuracy(train_loader))
-print(model.validation_accuracy(val_loader))
-
-# Test the model
-#trainer.test(model, val_loader)
-#print(model.test_accuracy(val_loader))
-'''
 
 sweep_config = {
     'method': 'bayes', #grid, random,bayes
@@ -372,14 +279,14 @@ def sweep_train():
   # Initialize Lightning trainer with GPU support
   #trainer = pl.Trainer(max_epochs=2, accelerator = "gpu" if torch.cuda.is_available() else "cpu", devices = 1 if torch.cuda.is_available() else 2, log_every_n_steps=30, callbacks=[EarlyStopping(monitor='val_loss')])
   trainer = pl.Trainer(
-        max_epochs= 2, 
+        max_epochs= 16, 
         accelerator="gpu" if torch.cuda.is_available() else "cpu", 
         devices=1 if torch.cuda.is_available() else 2, 
         log_every_n_steps=30,
         callbacks=[EarlyStopping(monitor='val_loss')]  # Specify the strategy here didn't work strategy='ddp_spawn' and strategy='ddp_notebook'
     )
 
-  for epoch in range(1):
+  for epoch in range(15):
       
       # Train for one epoch
       
